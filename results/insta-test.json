@@ -1,0 +1,8 @@
+{
+  "ok": false,
+  "sig": "t",
+  "postId": "test",
+  "at": "2026-11-11T11:36:18.810Z",
+  "imageUrl": "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/0f7660c2f425d680da0d23281ec7dc48c0ebfe73/ig/insta-test.jpg",
+  "error": "INSTAGRAM_TOKEN が設定されていません"
+}
