@@ -13,9 +13,10 @@ const path = require('path');
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
     </head><body></body></html>`, { waitUntil: 'networkidle' });
   await page.addScriptTag({ path: path.join(__dirname, 'insta-canvas.js') });
-  await page.evaluate(async () => {
-    for (const f of ['800 92px "Shippori Mincho B1"', '700 38px "Zen Kaku Gothic New"', '500 42px "Zen Kaku Gothic New"']) await document.fonts.load(f);
-  }).catch(() => console.log('（フォントの読み込みに失敗。代わりのフォントで描きます）'));
+  const txt = [q.image.headline, q.image.sub, q.brandName, '続きは、プロフィールのリンクから'].join('');
+  await page.evaluate(async (txt) => {
+    for (const f of ['800 92px "Shippori Mincho B1"', '800 78px "Shippori Mincho B1"', '700 44px "Zen Kaku Gothic New"', '700 38px "Zen Kaku Gothic New"', '500 42px "Zen Kaku Gothic New"', '700 26px "Zen Kaku Gothic New"']) await document.fonts.load(f, txt);
+  }, txt).catch(() => console.log('（フォントの読み込みに失敗。代わりのフォントで描きます）'));
   const dataUrl = await page.evaluate(({ image, brand }) => window.drawInsta(image, brand).toDataURL('image/jpeg', 0.92),
     { image: q.image, brand: { name: q.brandName, palette: q.palette } });
   fs.mkdirSync(path.dirname(out), { recursive: true });
