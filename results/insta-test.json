@@ -1,8 +1,9 @@
 {
-  "ok": false,
+  "ok": true,
   "sig": "t",
   "postId": "test",
-  "at": "2026-11-11T11:36:18.810Z",
-  "imageUrl": "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/0f7660c2f425d680da0d23281ec7dc48c0ebfe73/ig/insta-test.jpg",
-  "error": "INSTAGRAM_TOKEN が設定されていません"
+  "at": "2026-11-11T11:42:36.108Z",
+  "imageUrl": "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/b8241380e8322520fb0b32c1fc2294003e2a9ffc/ig/insta-test.jpg",
+  "test": true,
+  "username": "verite_japan"
 }
