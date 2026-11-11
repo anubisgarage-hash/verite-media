@@ -1,0 +1,64 @@
+name: Instagramに投稿
+
+# queue/<item>.json（キャプションと画像の指定）から縦長画像を作って ig/ に置き、
+# その公開URLで Instagram に投稿する。結果は results/<item>.json に残す。
+on:
+  workflow_dispatch:
+    inputs:
+      item:
+        description: 投稿キューの名前
+        required: true
+      test:
+        description: テスト（画像は作るが投稿しない）
+        type: boolean
+        default: false
+
+concurrency:
+  group: instagram-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: 二重投稿の確認
+        run: |
+          f="queue/${{ inputs.item }}.json"; r="results/${{ inputs.item }}.json"
+          test -f "$f" || { echo "キューにファイルがありません: $f"; exit 1; }
+          if [ -f "$r" ] && [ "${{ inputs.test }}" != "true" ]; then
+            node -e "const r=require('./$r'),q=require('./$f');if(r.ok&&!r.test&&r.sig===q.sig){console.log('この内容はすでに投稿済みです（二重投稿を防止）');process.exit(1)}"
+          fi
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: 画像を作成して公開
+        id: img
+        run: |
+          node tools/render.js "queue/${{ inputs.item }}.json" "ig/${{ inputs.item }}.jpg"
+          git config user.name "verite-bot"
+          git config user.email "verite-bot@users.noreply.github.com"
+          git add "ig/${{ inputs.item }}.jpg"
+          git commit -m "画像: ${{ inputs.item }}" || true
+          git pull --rebase -q && git push
+          echo "url=https://raw.githubusercontent.com/${{ github.repository }}/$(git rev-parse HEAD)/ig/${{ inputs.item }}.jpg" >> "$GITHUB_OUTPUT"
+      - name: 投稿
+        run: |
+          sleep 5
+          node tools/post.js "queue/${{ inputs.item }}.json" "${{ steps.img.outputs.url }}" "results/${{ inputs.item }}.json"
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          TEST: ${{ inputs.test && '1' || '0' }}
+      - name: 結果を保存
+        if: always()
+        run: |
+          cat "results/${{ inputs.item }}.json" || true
+          git add results/ || true
+          git commit -m "Instagram結果: ${{ inputs.item }}" || true
+          git pull --rebase -q && git push
