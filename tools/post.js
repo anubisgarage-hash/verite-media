@@ -1,5 +1,6 @@
-// Instagram に画像1枚とキャプションを投稿する。
+// Instagram に画像1枚とキャプションを投稿する。キューに slides（2枚以上）があるときはカルーセル（めくって読む複数枚）で投稿する。
 // 使い方: node tools/post.js queue/<item>.json <画像の公開URL> results/<item>.json
+//   カルーセルのときは <画像の公開URL> の「.jpg」を「-1.jpg」〜「-N.jpg」に置き換えたURLを使う（render.js が作るファイル名と同じ）。
 // 環境変数 INSTAGRAM_TOKEN が必要。TEST=1 のときは投稿せず、接続と文字数だけ確認する。
 const fs = require('fs');
 const path = require('path');
@@ -31,18 +32,31 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (!caption) throw new Error('キャプションが空です');
     if ([...caption].length > 2200) throw new Error(`キャプションが長すぎます（${[...caption].length}字。上限2,200字）`);
     if ((caption.match(/#/g) || []).length > 30) throw new Error('ハッシュタグは30個までです');
+    const n = Array.isArray(q.slides) && q.slides.length >= 2 ? Math.min(q.slides.length, 10) : 0;
+    const urls = n ? Array.from({ length: n }, (_, i) => imageUrl.replace(/\.jpg$/, `-${i + 1}.jpg`)) : [imageUrl];
+    if (n) r.imageUrls = urls;
     const me = await call('GET', `/${IG}`, { fields: 'username' });
-    if (TEST) {
-      r.ok = true; r.test = true; r.username = me.username;
-      console.log(`テスト：@${me.username} に投稿できる状態です（${[...caption].length}字・画像 ${imageUrl}）。投稿はしていません`);
-    } else {
-      const c = await call('POST', `/${IG}/media`, { image_url: imageUrl, caption });
-      for (let i = 0; i < 20; i++) { // 画像の取り込みが終わるまで待つ
-        const st = await call('GET', `/${c.id}`, { fields: 'status_code' });
-        if (st.status_code === 'FINISHED') break;
+    const waitReady = async (id) => { // 画像の取り込みが終わるまで待つ
+      for (let i = 0; i < 20; i++) {
+        const st = await call('GET', `/${id}`, { fields: 'status_code' });
+        if (st.status_code === 'FINISHED') return;
         if (st.status_code === 'ERROR') throw new Error('Instagramが画像を読み込めませんでした');
         await sleep(5000);
       }
+    };
+    if (TEST) {
+      r.ok = true; r.test = true; r.username = me.username;
+      console.log(`テスト：@${me.username} に投稿できる状態です（${[...caption].length}字・画像${n ? n + '枚 ' : ' '}${urls.join(' ')}）。投稿はしていません`);
+    } else {
+      let c;
+      if (n) {
+        const children = [];
+        for (const u of urls) { const ch = await call('POST', `/${IG}/media`, { image_url: u, is_carousel_item: 'true' }); await waitReady(ch.id); children.push(ch.id); }
+        c = await call('POST', `/${IG}/media`, { media_type: 'CAROUSEL', children: children.join(','), caption });
+      } else {
+        c = await call('POST', `/${IG}/media`, { image_url: imageUrl, caption });
+      }
+      await waitReady(c.id);
       const p = await call('POST', `/${IG}/media_publish`, { creation_id: c.id });
       const info = await call('GET', `/${p.id}`, { fields: 'permalink' }).catch(() => ({}));
       Object.assign(r, { ok: true, mediaId: p.id, url: info.permalink || '', username: me.username });

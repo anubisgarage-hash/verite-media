@@ -1,6 +1,7 @@
 name: Instagramに投稿
 
 # queue/<item>.json（キャプションと画像の指定）から縦長画像を作って ig/ に置き、
+# （slides があるときは ig/<item>-1.jpg〜-N.jpg を作り、カルーセルで投稿する）
 # その公開URLで Instagram に投稿する。結果は results/<item>.json に残す。
 on:
   workflow_dispatch:
@@ -44,7 +45,7 @@ jobs:
           node tools/render.js "queue/${{ inputs.item }}.json" "ig/${{ inputs.item }}.jpg"
           git config user.name "verite-bot"
           git config user.email "verite-bot@users.noreply.github.com"
-          git add "ig/${{ inputs.item }}.jpg"
+          git add ig/
           git commit -m "画像: ${{ inputs.item }}" || true
           git pull --rebase -q && git push
           echo "url=https://raw.githubusercontent.com/${{ github.repository }}/$(git rev-parse HEAD)/ig/${{ inputs.item }}.jpg" >> "$GITHUB_OUTPUT"

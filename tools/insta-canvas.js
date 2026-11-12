@@ -9,7 +9,8 @@ function wrapLines(ctx, text, maxW, maxLines){
   if(lines.length>maxLines){ lines.length=maxLines; lines[maxLines-1]=lines[maxLines-1].slice(0,-1)+'…'; }
   return lines;
 }
-function drawInsta(img, brand){
+// opt（任意）: {page:'2/5', cta:'…'} カルーセルの1枚として描くとき。無ければ従来どおり1枚投稿の画像。
+function drawInsta(img, brand, opt){
   const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H;
   const x=c.getContext('2d'), pal=brand?.palette||{bg:'#16233A',ink:'#F4EFEA',accent:'#E8775F',sub:'#3FA59A',paper:'#F6F1EC'};
   const name=(brand?.name||'').toUpperCase();
@@ -42,7 +43,15 @@ function drawInsta(img, brand){
   // footer CTA
   x.fillStyle=dark?pal.accent:pal.bg; x.fillRect(0,H-150,W,150);
   x.fillStyle=dark?pal.bg:pal.paper; x.font=`700 38px ${goth}`; x.textAlign='center';
-  x.fillText('続きは、プロフィールのリンクから',W/2,H-62); x.textAlign='left';
+  x.fillText(opt?.cta||'続きは、プロフィールのリンクから',W/2,H-62); x.textAlign='left';
+  if(opt?.page){ x.fillStyle=ink; x.globalAlpha=.6; x.font=`700 28px ${goth}`; x.textAlign='right'; x.fillText(opt.page,W-90,H-185); x.textAlign='left'; x.globalAlpha=1; }
   return c;
 }
+// カルーセル（めくって読む5枚）の i 枚目（0始まり）。文字は slides[i]、色と型は元の image.style に合わせる。
+function slideOpt(i, n){ return {page:`${i+1}/${n}`, cta: i===n-1 ? '詳しくはキャプションへ' : 'めくって続きを読む →'}; }
+function drawSlide(slides, i, base, brand){
+  const s=slides[i]||{}, style=s.style||base?.style||'navy';
+  return drawInsta({style: style==='check' && !String(s.sub||'').includes('|') ? 'navy' : style, headline:s.headline||'', sub:s.sub||''}, brand, slideOpt(i, slides.length));
+}
 window.drawInsta = drawInsta;
+window.drawSlide = drawSlide;
