@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "sig": "1eea13099f78447b",
+  "postId": "insta-mwdo8k1c",
+  "at": "2026-11-13T10:25:44.808Z",
+  "imageUrl": "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c.jpg",
+  "imageUrls": [
+    "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c-1.jpg",
+    "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c-2.jpg",
+    "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c-3.jpg",
+    "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c-4.jpg",
+    "https://raw.githubusercontent.com/anubisgarage-hash/verite-media/9114d123338032122dc25a288391e2a57443c10c/ig/insta-mwdo8k1c-5.jpg"
+  ],
+  "error": "Instagram APIエラー: API access blocked."
+}
